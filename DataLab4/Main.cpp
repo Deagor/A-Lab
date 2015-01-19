@@ -17,9 +17,14 @@ void visit( Node * pNode ) {
 	cout << "Visiting: " << pNode->data().first << " " << pNode->data().second << endl;
 }
 
+void setH(Node * pNode, int arcWeight)
+{
+	pNode->setHValue(arcWeight * 0.9f);
+}
+
 int main(int argc, char *argv[]) {
    
-	Graph<pair<string, int>, int> graph(6);//create the graph(9=number of vertices) 
+	Graph<pair<string, int>, int> graph(32);//create the graph(9=number of vertices) 
 	
 	string c; 
 	int i = 0;
@@ -37,6 +42,7 @@ int main(int argc, char *argv[]) {
 	int weight;
 	int ifrom, ito;
 	while ( myfile >> from >> to >> weight ) {
+		ifrom = from > 9 ?
 		ifrom = from.at(0) - 'A';
 		ito = to.at(0) - 'A';
 		graph.addArc(ifrom, ito, weight);
@@ -45,7 +51,7 @@ int main(int argc, char *argv[]) {
 
 
 	std::vector<Node*> path;
-	graph.UCS(graph.nodeArray()[0], graph.nodeArray()[5], visit, path);
+	graph.UCS(graph.nodeArray()[0], graph.nodeArray()[5], setH, path);
 
 	for (int i = path.size() - 1; i >= 0; i--)
 	{
