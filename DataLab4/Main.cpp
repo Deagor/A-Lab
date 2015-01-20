@@ -38,20 +38,23 @@ int main(int argc, char *argv[]) {
 	myfile.close();
 	myfile.open("townArcs.txt");
 
-	string from, to;
+	char from, to;
 	int weight;
 	int ifrom, ito;
 	while ( myfile >> from >> to >> weight ) {
-		ifrom = from > 9 ?
-		ifrom = from.at(0) - 'A';
-		ito = to.at(0) - 'A';
+
+		ifrom = (from <= '9') ? from - '0' : from - 'a';
+		ito = (to <= '9') ? to - '0' : to - 'a';
+
+		/*ifrom = from.at(0) - '0';
+		ito = to.at(0) - '0';*/
 		graph.addArc(ifrom, ito, weight);
 	}
     myfile.close();
 
 
 	std::vector<Node*> path;
-	graph.UCS(graph.nodeArray()[0], graph.nodeArray()[5], setH, path);
+	graph.UCS(graph.nodeArray()[0], graph.nodeArray()[5], visit, path);
 
 	for (int i = path.size() - 1; i >= 0; i--)
 	{

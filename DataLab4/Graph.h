@@ -76,7 +76,7 @@ public:
 
 	//adapted breadthfirst
 	void adaptedBreadthFirst(Node* pNode, void(*pProcess)(Node*), Node* target);
-	void UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,ArcType), std::vector<Node *>& path);
+	void UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*), std::vector<Node *>& path);
 	void aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path);
 
 };
@@ -383,7 +383,7 @@ void Graph<NodeType, ArcType>::adaptedBreadthFirst( Node* pNode, void (*pProcess
 }
 
 template<class NodeType, class ArcType>
-void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,ArcType), std::vector<Node*>& path)
+void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*), std::vector<Node*>& path)
 {
 	priority_queue<Node*, vector<Node*>, NodeCostComparer<NodeType, ArcType>> pq;
 	bool goalReached = false;
@@ -407,7 +407,7 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 		 {
 			 if ((*iter).node() != (pq.top())->getPrevNode())
 			 {
-				 pProcess((*iter).node(),(*iter).weight());
+				 pProcess((*iter).node());/*,(*iter).weight());*/
 				 //distC = weight of arc from pq.top to the child + distance from top
 				 float distC = (*iter).weight() + pq.top()->data().second;
 				 if (distC < (*iter).node()->data().second)
