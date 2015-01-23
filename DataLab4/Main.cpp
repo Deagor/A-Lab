@@ -1,10 +1,12 @@
-
+#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 
 #include "Graph.h"
 #include <utility>
 #include <string>
+
+
 using std::pair;
 
 using namespace std;

@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include "stdafx.h"
 #include <list>
 #include <queue>
 

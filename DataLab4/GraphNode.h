@@ -1,6 +1,7 @@
 #ifndef GRAPHNODE_H
 #define GRAPHNODE_H
 
+#include "stdafx.h"
 #include <list>
 
 // Forward references
@@ -36,6 +37,9 @@ private:
 
 	//previous node
 	Node* prevNode;
+
+	//for drawing
+	/*sf::Vector2*/
 
 public:
 
@@ -107,7 +111,12 @@ GraphArc<NodeType, ArcType>* GraphNode<NodeType, ArcType>::getArc( Node* pNode )
      return pArc;
 }
 
-
+/*sf::text t
+w.draw(g.nodearray()[i]->getshape
+t = g .nodarray()[i]->getName
+t.setfont(f)
+w.draw(t)
+*/
 // ----------------------------------------------------------------
 //  Name:           addArc
 //  Description:    This adds an arc from the current node pointing

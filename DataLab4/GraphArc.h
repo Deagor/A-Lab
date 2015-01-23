@@ -1,6 +1,7 @@
 #ifndef GRAPHARC_H
 #define GRAPHARC_H
 
+#include "stdafx.h"
 #include "GraphNode.h"
 
 // -------------------------------------------------------
