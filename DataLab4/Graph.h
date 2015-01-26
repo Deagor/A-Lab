@@ -77,8 +77,9 @@ public:
 
 	//adapted breadthfirst
 	void adaptedBreadthFirst(Node* pNode, void(*pProcess)(Node*), Node* target);
-	void UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*), std::vector<Node *>& path);
+	void UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,int));
 	void aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path);
+	void test();
 
 };
 
@@ -384,7 +385,7 @@ void Graph<NodeType, ArcType>::adaptedBreadthFirst( Node* pNode, void (*pProcess
 }
 
 template<class NodeType, class ArcType>
-void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*), std::vector<Node*>& path)
+void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,int))
 {
 	priority_queue<Node*, vector<Node*>, NodeCostComparer<NodeType, ArcType>> pq;
 	bool goalReached = false;
@@ -394,6 +395,7 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 		NodeType d = m_pNodes[i]->data();
 		m_pNodes[i]->setData(make_pair(d.first, INT_MAX));
 	}
+
 	NodeType data = pStart->data();
 	pStart->setData(make_pair(data.first, 0));
 	pq.push(pStart);
@@ -408,7 +410,7 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 		 {
 			 if ((*iter).node() != (pq.top())->getPrevNode())
 			 {
-				 pProcess((*iter).node());/*,(*iter).weight());*/
+				 pProcess((*iter).node(),(*iter).weight());
 				 //distC = weight of arc from pq.top to the child + distance from top
 				 float distC = (*iter).weight() + pq.top()->data().second;
 				 if (distC < (*iter).node()->data().second)
@@ -425,17 +427,6 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 			 }
 		 }
 		 pq.pop();
-	}
-	//found target. put path into path vector(traverse the previous nodes)
-	Node* target = pDest;
-	while (target->getPrevNode() != NULL)
-	{
-		path.push_back(target);
-		target = target->getPrevNode();
-	}
-	if (target->getPrevNode() == NULL)
-	{
-		path.push_back(target);
 	}
 }
 
@@ -494,6 +485,21 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 	}
 }
 
+template<class NodeType,class ArcType>
+void Graph<NodeType, ArcType>::test()
+{
+	for (int i = 0; i < m_count; i++)
+	{ 
+		cout << m_pNodes[i]->data().first << "\t";
+		int numArcs = m_pNodes[i]->arcList().size();
+		auto theList = m_pNodes[i]->arcList();
+		for (auto iter = theList.begin(); iter != theList.end(); iter++)
+		{
+			cout << iter->weight() << "\t";
+		}
+		cout << endl;
+	}
+}
 
 #include "GraphNode.h"
 #include "GraphArc.h"
