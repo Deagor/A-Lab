@@ -22,6 +22,17 @@ public:
 
 };
 
+template<class NodeType,class ArcType>
+class NodeFComparer
+{
+public:
+	bool operator()(GraphNode<NodeType, ArcType> * n1, GraphNode<NodeType, ArcType> * n2)
+	{
+		float p1 = n1->getHValue() + n1->getGValue();
+		float p2 = n1->getHValue() + n2->getGValue();
+		return p2 > p1;
+	}
+};
 
 // ----------------------------------------------------------------
 //  Name:           Graph
@@ -77,9 +88,10 @@ public:
 
 	//adapted breadthfirst
 	void adaptedBreadthFirst(Node* pNode, void(*pProcess)(Node*), Node* target);
-	void UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,int));
+	void UCS(Node* pStart, Node* pDest/*, void (*pProcess)(int,int,Node*)*/);
 	void aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path);
 	void test();
+	void setH(int G, int arcWeight, Node* cNode);
 
 };
 
@@ -385,7 +397,7 @@ void Graph<NodeType, ArcType>::adaptedBreadthFirst( Node* pNode, void (*pProcess
 }
 
 template<class NodeType, class ArcType>
-void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(Node*,int))
+void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest)
 {
 	priority_queue<Node*, vector<Node*>, NodeCostComparer<NodeType, ArcType>> pq;
 	bool goalReached = false;
@@ -396,21 +408,24 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 		m_pNodes[i]->setData(make_pair(d.first, INT_MAX));
 	}
 
-	NodeType data = pStart->data();
-	pStart->setData(make_pair(data.first, 0));
-	pq.push(pStart);
-	pStart->setMarked(true);
+	NodeType data = pDest->data();
+	pDest->setData(make_pair(data.first, 0));
+	pq.push(pDest);
+	pDest->setMarked(true);
+	pDest->setHValue(0);
 
-	while(pq.size() != 0 && pq.top() != pDest)
+	while(pq.size() != 0 && pq.top() != pStart)
 	{
+		
 		 list<Arc>::const_iterator iter = pq.top()->arcList().begin();
          list<Arc>::const_iterator endIter = pq.top()->arcList().end();
 		 
 		 for( ; iter != endIter; iter++ ) 
 		 {
-			 if ((*iter).node() != (pq.top())->getPrevNode())
+			 if ((*iter).node()->marked()){continue; }
+			 else if ((*iter).node() != (pq.top())->getPrevNode())
 			 {
-				 pProcess((*iter).node(),(*iter).weight());
+				 setH(pq.top()->data().second,(*iter).weight(),(*iter).node());
 				 //distC = weight of arc from pq.top to the child + distance from top
 				 float distC = (*iter).weight() + pq.top()->data().second;
 				 if (distC < (*iter).node()->data().second)
@@ -427,22 +442,35 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest, void (*pProcess)(N
 			 }
 		 }
 		 pq.pop();
+		 if (pq.size() > 0) { make_heap(const_cast<Node**>(&pq.top()), const_cast<Node**>(&pq.top()) + pq.size(), NodeFComparer<NodeType, ArcType>()); }
 	}
+	/*if (pq.size() != 0 && pq.top() == pDest)
+	{
+		list<Arc>::const_iterator iter = pq.top()->arcList().begin();
+		list<Arc>::const_iterator endIter = pq.top()->arcList().end();
+
+		for (int i = 0; i < length; i++)
+		{
+
+		}
+	}*/
 }
 
 template<class NodeType,class ArcType>
 void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path)
 {
-	priority_queue<Node*, vector<Node*>, NodeCostComparer<NodeType, ArcType>> pq;
+	priority_queue<Node*, vector<Node*>, NodeFComparer<NodeType, ArcType>> pq;
 	bool goalReached = false;
 
-	for (int i = 0; i<m_count; i++)
+	UCS(pStart, pDest);
+
+	for (int i = 0; i < m_count; i++)
 	{
-		NodeType d = m_pNodes[i]->data();
-		m_pNodes[i]->setData(make_pair(d.first, INT_MAX));
+		m_pNodes[i]->setMarked(false);
+		m_pNodes[i]->setPrevNode(NULL);
 	}
-	NodeType data = pStart->data();
-	pStart->setData(make_pair(data.first, 0));
+	
+	pStart->setGValue(0);
 	pq.push(pStart);
 	pStart->setMarked(true);
 
@@ -450,17 +478,16 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 	{
 		list<Arc>::const_iterator iter = pq.top()->arcList().begin();
 		list<Arc>::const_iterator endIter = pq.top()->arcList().end();
-		pProcess(pq.top());
+
 		for (; iter != endIter; iter++)
 		{
 			if ((*iter).node() != (pq.top())->getPrevNode())
 			{
 				//distC = weight of arc from pq.top to the child + distance from top
-				float distC = (*iter).weight() + pq.top()->data().second;
-				if (distC < (*iter).node()->data().second)
+				float distC = pq.top()->getGValue() + (*iter).node()->getHValue();
+				if (distC < (*iter).node()->getGValue())
 				{
-					NodeType data = (*iter).node()->data();
-					(*iter).node()->setData(make_pair(data.first, distC));
+					(*iter).node()->setGValue(distC);
 					(*iter).node()->setPrevNode(pq.top());
 				}
 				if ((*iter).node()->marked() == false)
@@ -471,9 +498,11 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 			}
 		}
 		pq.pop();
+		if (pq.size() > 0) { make_heap(const_cast<Node**>(&pq.top()), const_cast<Node**>(&pq.top()) + pq.size(), NodeFComparer<NodeType, ArcType>()); }
+		
 	}
 	//found target. put path into path vector(traverse the previous nodes)
-	Node* target = pDest;
+	/*Node* target = pDest;
 	while (target->getPrevNode() != NULL)
 	{
 		path.push_back(target);
@@ -482,7 +511,7 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 	if (target->getPrevNode() == NULL)
 	{
 		path.push_back(target);
-	}
+	}*/
 }
 
 template<class NodeType,class ArcType>
@@ -491,16 +520,23 @@ void Graph<NodeType, ArcType>::test()
 	for (int i = 0; i < m_count; i++)
 	{ 
 		cout << m_pNodes[i]->data().first << "\t";
-		int numArcs = m_pNodes[i]->arcList().size();
-		auto theList = m_pNodes[i]->arcList();
-		for (auto iter = theList.begin(); iter != theList.end(); iter++)
-		{
-			cout << iter->weight() << "\t";
-		}
+		cout << m_pNodes[i]->getHValue() << "\t";
+		cout << m_pNodes[i]->getGValue() << "\t";
+		//int numArcs = m_pNodes[i]->arcList().size();
+		//auto theList = m_pNodes[i]->arcList();
+		//for (auto iter = theList.begin(); iter != theList.end(); iter++)
+		//{
+		//	cout << iter->weight() << "\t";
+		//}
 		cout << endl;
 	}
 }
 
+template<class NodeType,class ArcType>
+void Graph<NodeType,ArcType>::setH(int G, int arcWeight, Node* cNode)
+{
+	cNode->setHValue((G + arcWeight) * 0.9f);
+}
 #include "GraphNode.h"
 #include "GraphArc.h"
 

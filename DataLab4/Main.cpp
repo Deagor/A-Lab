@@ -19,12 +19,6 @@ void visit( Node * pNode ) {
 	cout << "Visiting: " << pNode->data().first << endl;
 }
 
-void setH(Node * pNode, int arcWeight)
-{
-	pNode->setHValue(arcWeight * 0.9f);
-	cout << "set: " << pNode->data().first << endl;
-}
-
 int main(int argc, char *argv[]) {
    
 	Graph<pair<string, int>, int> graph(32);//create the graph(9=number of vertices) 
@@ -56,13 +50,13 @@ int main(int argc, char *argv[]) {
 
 	std::vector<Node*> path;
 
-	graph.UCS(graph.nodeArray()[0], graph.nodeArray()[5], setH);
-
-	for (int i = path.size() - 1; i >= 0; i--)
+	graph.aStar(graph.nodeArray()[0], graph.nodeArray()[5], visit,path);
+	graph.test();
+	/*for (int i = path.size() - 1; i >= 0; i--)
 	{
 		cout << path.at(i)->data().first << endl;
 	}
-	Node *final = graph.nodeArray()[5];
+	Node *final = graph.nodeArray()[5];*/
 	system("PAUSE");
 	
 }

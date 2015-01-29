@@ -47,6 +47,8 @@ public:
 	GraphNode(Node* previous = 0)
 	{
 		setPrevNode(previous);
+		hValue = INT_MAX;
+		gValue = INT_MAX;
 	}
 
     // Accessor functions
