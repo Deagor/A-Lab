@@ -5,7 +5,6 @@
 #include <list>
 #include <queue>
 
-
 using namespace std;
 
 template <class NodeType, class ArcType> class GraphArc;
@@ -14,7 +13,8 @@ template <class NodeType, class ArcType> class GraphNode;
 template <class NodeType, class ArcType>
 class NodeCostComparer {
 public:
-	bool operator()(GraphNode<NodeType, ArcType> * n1, GraphNode<NodeType, ArcType> * n2) {
+	bool operator()(GraphNode<NodeType, ArcType> * n1, GraphNode<NodeType, ArcType> * n2) const 
+	{
 		pair<string, int> p1 = n1->data();
 		pair<string, int> p2 = n2->data();
 		return p1.second > p2.second;
@@ -26,11 +26,11 @@ template<class NodeType,class ArcType>
 class NodeFComparer
 {
 public:
-	bool operator()(GraphNode<NodeType, ArcType> * n1, GraphNode<NodeType, ArcType> * n2)
+	bool operator()(GraphNode<NodeType, ArcType> n1, GraphNode<NodeType, ArcType> n2) const
 	{
-		float p1 = n1->getHValue() + n1->getGValue();
-		float p2 = n1->getHValue() + n2->getGValue();
-		return p2 > p1;
+		float p1 = n1.getHValue() + n1.getGValue();
+		float p2 = n1.getHValue() + n2.getGValue();
+		return p2 < p1;
 	}
 };
 
@@ -66,6 +66,7 @@ private:
 
 
 
+
 public:           
     // Constructor and destructor functions
     Graph( int size );
@@ -76,8 +77,10 @@ public:
        return m_pNodes;
     }
 
+	int getCount() const { return m_count; }
+
     // Public member functions.
-    bool addNode( NodeType data, int index );
+    bool addNode( NodeType data, int index,int posX,int posY );
     void removeNode( int index );
     bool addArc( int from, int to, ArcType weight );
     void removeArc( int from, int to );
@@ -140,7 +143,7 @@ Graph<NodeType, ArcType>::~Graph() {
 //  Return Value:   true if successful
 // ----------------------------------------------------------------
 template<class NodeType, class ArcType>
-bool Graph<NodeType, ArcType>::addNode( NodeType data, int index ) {
+bool Graph<NodeType, ArcType>::addNode( NodeType data, int index,int posX,int posY) {
    bool nodeNotPresent = false;
    // find out if a node does not exist at that index.
    if ( m_pNodes[index] == 0) {
@@ -149,7 +152,9 @@ bool Graph<NodeType, ArcType>::addNode( NodeType data, int index ) {
       m_pNodes[index] = new Node;
       m_pNodes[index]->setData(data);
       m_pNodes[index]->setMarked(false);
+	  m_pNodes[index]->setPos(posX, posY);
 
+	  DrawLevel::getSingleton()->CreateShape(posX, posY);
       // increase the count and return success.
       m_count++;
     }
@@ -416,33 +421,33 @@ void Graph<NodeType, ArcType>::UCS(Node* pStart, Node* pDest)
 
 	while(pq.size() != 0 && pq.top() != pStart)
 	{
-		
-		 list<Arc>::const_iterator iter = pq.top()->arcList().begin();
-         list<Arc>::const_iterator endIter = pq.top()->arcList().end();
+		auto currentNode = pq.top();
+		pq.pop();
+		 list<Arc>::const_iterator iter = currentNode->arcList().begin();
+		 list<Arc>::const_iterator endIter = currentNode->arcList().end();
 		 
 		 for( ; iter != endIter; iter++ ) 
 		 {
 			 if ((*iter).node()->marked()){continue; }
-			 else if ((*iter).node() != (pq.top())->getPrevNode())
+			 else if ((*iter).node() != (currentNode)->getPrevNode())
 			 {
-				 setH(pq.top()->data().second,(*iter).weight(),(*iter).node());
+				 setH(currentNode->data().second, (*iter).weight(), (*iter).node());
 				 //distC = weight of arc from pq.top to the child + distance from top
-				 float distC = (*iter).weight() + pq.top()->data().second;
+				 float distC = (*iter).weight() + currentNode->data().second;
 				 if (distC < (*iter).node()->data().second)
 				 {
 					 NodeType data = (*iter).node()->data();
 					 (*iter).node()->setData(make_pair(data.first, distC));
-					 (*iter).node()->setPrevNode(pq.top());
-				 }
-				 if((*iter).node()->marked() == false)
-				 {
-					 pq.push((*iter).node());
-					 (*iter).node()->setMarked(true);
+					 (*iter).node()->setPrevNode(currentNode);
+
+					 if ((*iter).node()->marked() == false)
+					 {
+						 pq.push((*iter).node());
+						 (*iter).node()->setMarked(true);
+					 }
 				 }
 			 }
 		 }
-		 pq.pop();
-		 if (pq.size() > 0) { make_heap(const_cast<Node**>(&pq.top()), const_cast<Node**>(&pq.top()) + pq.size(), NodeFComparer<NodeType, ArcType>()); }
 	}
 	/*if (pq.size() != 0 && pq.top() == pDest)
 	{
@@ -460,6 +465,7 @@ template<class NodeType,class ArcType>
 void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path)
 {
 	priority_queue<Node*, vector<Node*>, NodeFComparer<NodeType, ArcType>> pq;
+	
 	bool goalReached = false;
 
 	UCS(pStart, pDest);
@@ -476,30 +482,31 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 
 	while (pq.size() != 0 && pq.top() != pDest)
 	{
-		list<Arc>::const_iterator iter = pq.top()->arcList().begin();
-		list<Arc>::const_iterator endIter = pq.top()->arcList().end();
+		auto currentNode = pq.top();
+		pq.pop();
+
+		list<Arc>::const_iterator iter = currentNode->arcList().begin();
+		list<Arc>::const_iterator endIter = currentNode->arcList().end();
 
 		for (; iter != endIter; iter++)
 		{
-			if ((*iter).node() != (pq.top())->getPrevNode())
+			if ((*iter).node() != (currentNode)->getPrevNode())
 			{
 				//distC = weight of arc from pq.top to the child + distance from top
-				float distC = pq.top()->getGValue() + (*iter).node()->getHValue();
+				float distC = currentNode->getGValue() + (*iter).node()->getHValue();
 				if (distC < (*iter).node()->getGValue())
 				{
-					(*iter).node()->setGValue(distC);
-					(*iter).node()->setPrevNode(pq.top());
-				}
-				if ((*iter).node()->marked() == false)
-				{
-					pq.push((*iter).node());
-					(*iter).node()->setMarked(true);
+					(*iter).node()->setGValue(currentNode->getGValue() + (*iter).weight());
+					(*iter).node()->setPrevNode(currentNode);
+
+					if ((*iter).node()->marked() == false)
+					{
+						pq.push((*iter).node());
+						(*iter).node()->setMarked(true);
+					}
 				}
 			}
-		}
-		pq.pop();
-		if (pq.size() > 0) { make_heap(const_cast<Node**>(&pq.top()), const_cast<Node**>(&pq.top()) + pq.size(), NodeFComparer<NodeType, ArcType>()); }
-		
+		}	
 	}
 	//found target. put path into path vector(traverse the previous nodes)
 	/*Node* target = pDest;

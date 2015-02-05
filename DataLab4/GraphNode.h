@@ -25,6 +25,8 @@ private:
     NodeType m_data;
 	int hValue;
 	int gValue;
+
+	int posX, posY;
 // -------------------------------------------------------
 // Description: list of arcs that the node has.
 // -------------------------------------------------------
@@ -48,7 +50,7 @@ public:
 	{
 		setPrevNode(previous);
 		hValue = INT_MAX;
-		gValue = INT_MAX;
+		gValue = 0;
 	}
 
     // Accessor functions
@@ -85,6 +87,9 @@ public:
 	void setGValue(int val) { gValue = val; }
 	int getGValue() { return gValue; }
 
+	void setPos(int positionX, int positionY) { posX = positionX; posY = positionY; }
+	int getX() { return posX; }
+	int getY() { return posY; }
 };
 
 // ----------------------------------------------------------------
