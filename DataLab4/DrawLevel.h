@@ -11,6 +11,7 @@ public:
 
 	void CreateShape(int posX,int posY);
 	std::tuple<int,int,int> CheckMouseClicks(sf::Event theEvent,sf::RenderWindow& window);
+	void DrawLevel::ResetShapes();
 	
 	void Draw(Graph<std::pair<std::string,int>,int> * theGraph,sf::RenderWindow& window);
 
@@ -24,8 +25,9 @@ private:
 	sf::Sprite srtBtn, resetBtn;
 
 	sf::Mouse mouse;
-	int start, end;
+	int start = -1, end = -1;
 	bool lMousePrevClicked, rMousePrevClicked;
+	bool hasRun;
 };
 
 #endif

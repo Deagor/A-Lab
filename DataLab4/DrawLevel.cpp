@@ -27,6 +27,7 @@ DrawLevel::DrawLevel()
 
 	lMousePrevClicked = false;
 	rMousePrevClicked = false;
+	hasRun = false;
 }
 
 
@@ -42,6 +43,16 @@ void DrawLevel::CreateShape(int posX,int posY)
 	shape.setFillColor(sf::Color::Green);
 
 	shapes.push_back(shape);
+}
+
+void DrawLevel::ResetShapes()
+{
+	for (int i = 0; i < shapes.size(); i++)
+	{
+		shapes[i].setFillColor(sf::Color::Green);
+	}
+	start = end = -1;
+	hasRun = false;
 }
 
 void DrawLevel::Draw(Graph<std::pair<std::string,int>,int>* theGraph,sf::RenderWindow& window)
@@ -68,9 +79,16 @@ void DrawLevel::Draw(Graph<std::pair<std::string,int>,int>* theGraph,sf::RenderW
 			};
 			window.draw(vertices, 2, sf::Lines);
 		}
-		if (shapes[i].getFillColor() != sf::Color::White && nodes[i]->marked() && !nodes[i]->isInPath()) { shapes[i].setFillColor(sf::Color::White); }
-		else if (shapes[i].getFillColor() != sf::Color::Yellow && nodes[i]->marked() && nodes[i]->isInPath()) { shapes[i].setFillColor(sf::Color::Yellow); }
-		else if (shapes[i].getFillColor() != sf::Color::Green && !nodes[i]->marked()) { shapes[i].setFillColor(sf::Color::Green); }
+		if (i == start) { shapes[i].setFillColor(sf::Color::Cyan); }
+		else if (i == end) { shapes[i].setFillColor(sf::Color::Magenta); }
+
+		else if (shapes[i].getFillColor() != sf::Color::White && 
+			!nodes[i]->isInPath() && nodes[i]->marked()) { shapes[i].setFillColor(sf::Color::White); }
+
+		else if (shapes[i].getFillColor() != sf::Color::Yellow && 
+				 nodes[i]->isInPath() && nodes[i]->marked()) { shapes[i].setFillColor(sf::Color::Yellow); }
+
+		else if (!nodes[i]->marked() && !nodes[i]->isInPath()) { shapes[i].setFillColor(sf::Color::Green); }
 
 		window.draw(shapes[i]);
 		text.setString(nodes[i]->data().first);
@@ -106,45 +124,49 @@ std::tuple<int,int,int> DrawLevel::CheckMouseClicks(sf::Event theEvent,sf::Rende
 					start = i;
 				}
 				if (shapes[i].getFillColor() == sf::Color::Magenta || shapes[i].getFillColor() == sf::Color::Cyan)
-				{
-					int i = 0;
-				
+				{		
+					if (i != start && i != end) { shapes[i].setFillColor(sf::Color::Green); }
 				}
-				else { shapes[i].setFillColor(sf::Color::Green); }
 			}
-			if (srtBtn.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y) && start != NULL && end != NULL)
+			if (srtBtn.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y) && start != -1 && end != -1)
 			{
-				return std::make_tuple(1, start, end);
+				if (!hasRun)
+				{
+					hasRun = true;
+					return std::make_tuple(1, start, end);
+				}
 			}
 			else if (resetBtn.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y))
 			{
-				return std::make_tuple(2, NULL, NULL);
+				return std::make_tuple(2, -1, -1);
+				start = -1;
+				end = -1;
 			}
 			lMousePrevClicked = true;
 		}
 		
 	}
-	else if (!rMousePrevClicked)
+	else { lMousePrevClicked = false; }
+
+	if (!rMousePrevClicked)
 	{
 		if (theEvent.type == sf::Event::MouseButtonPressed && theEvent.mouseButton.button == sf::Mouse::Right)
 		{
 			for (int i = 0; i < shapes.size(); i++)
 			{
-				if (shapes[i].getGlobalBounds().contains(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y))
+				if (shapes[i].getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y))
 				{
 					shapes[i].setFillColor(sf::Color::Magenta);
 					end = i;
 				}
 				if (shapes[i].getFillColor() == sf::Color::Magenta || shapes[i].getFillColor() == sf::Color::Cyan)
 				{
-					int i = 0;
-
+					if (i != start && i != end) { shapes[i].setFillColor(sf::Color::Green); }
 				}
-				else { shapes[i].setFillColor(sf::Color::Green); }
 			}
 
 		}
 	}
-	else { lMousePrevClicked = false; rMousePrevClicked = false; }
+	else { rMousePrevClicked = false; }
 	return std::make_tuple(0, NULL, NULL);
 }

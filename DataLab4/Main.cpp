@@ -93,17 +93,21 @@ int main(int argc, char *argv[])
 			if ((Event.type == sf::Event::KeyPressed) && (Event.key.code == sf::Keyboard::Escape))
 				window.close();
 		}
-		DrawLevel::getSingleton()->Draw(&graph,*pwindow );
-
-		auto check = DrawLevel::getSingleton()->CheckMouseClicks(Event,*pwindow);
-		if (check._Myfirst._Val == 1)
+		auto check = DrawLevel::getSingleton()->CheckMouseClicks(Event, *pwindow);
+		if (std::get<0>(check) == 1)
 		{
-			graph.aStar(graph.nodeArray()[0], graph.nodeArray()[5], visit, path);
+			graph.aStar(graph.nodeArray()[std::get<1>(check)], graph.nodeArray()[std::get<2>(check)], visit, path);
 			graph.test();
 		}
-		else if (check._Myfirst._Val == 2)
+		else if (std::get<0>(check) == 2)
 		{
+			graph.ResetNodes();
+			path.clear();
+			DrawLevel::getSingleton()->ResetShapes();
 		}
+		DrawLevel::getSingleton()->Draw(&graph,*pwindow );
+
+		
 		window.display();
 	}
 }

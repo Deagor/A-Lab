@@ -95,6 +95,8 @@ public:
 	void aStar(Node* pStart, Node* pDest, void(*pProcess)(Node*), std::vector<Node*>&path);
 	void test();
 	void setH(int G, int arcWeight, Node* cNode);
+	void ResetNodes();
+
 
 };
 
@@ -551,5 +553,18 @@ void Graph<NodeType,ArcType>::setH(int G, int arcWeight, Node* cNode)
 #include "GraphNode.h"
 #include "GraphArc.h"
 
+
+template<class NodeType,class ArcType>
+void Graph<NodeType, ArcType>::ResetNodes()
+{
+	for (int i = 0; i < m_count; i++)
+	{
+		m_pNodes[i]->setMarked(false);
+		m_pNodes[i]->setPrevNode(NULL);
+		m_pNodes[i]->setInPath(false);
+		m_pNodes[i]->setGValue(INT_MAX);
+		m_pNodes[i]->setHValue(INT_MAX);
+	}
+}
 
 #endif
