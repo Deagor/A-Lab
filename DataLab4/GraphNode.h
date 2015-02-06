@@ -25,6 +25,7 @@ private:
     NodeType m_data;
 	int hValue;
 	int gValue;
+	bool inPath;
 
 	int posX, posY;
 // -------------------------------------------------------
@@ -50,7 +51,7 @@ public:
 	{
 		setPrevNode(previous);
 		hValue = INT_MAX;
-		gValue = 0;
+		gValue = INT_MAX;
 	}
 
     // Accessor functions
@@ -73,6 +74,11 @@ public:
     void setMarked(bool mark) {
         m_marked = mark;
     }
+	void setInPath(bool path)
+	{
+		inPath = path;
+	}
+	bool isInPath() { return inPath; }
            
     Arc* getArc( Node* pNode );    
     void addArc( Node* pNode, ArcType pWeight );

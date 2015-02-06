@@ -71,13 +71,12 @@ int main(int argc, char *argv[])
 
 	std::vector<Node*> path;
 
-	graph.aStar(graph.nodeArray()[0], graph.nodeArray()[20], visit, path);
-	graph.test();
-	/*for (int i = path.size() - 1; i >= 0; i--)
+	
+	for (int i = path.size() - 1; i >= 0; i--)
 	{
 	cout << path.at(i)->data().first << endl;
 	}
-	Node *final = graph.nodeArray()[5];*/
+	//Node *final = graph.nodeArray()[5];
 
 	while (window.isOpen())
 	{
@@ -96,6 +95,15 @@ int main(int argc, char *argv[])
 		}
 		DrawLevel::getSingleton()->Draw(&graph,*pwindow );
 
+		auto check = DrawLevel::getSingleton()->CheckMouseClicks(Event,*pwindow);
+		if (check._Myfirst._Val == 1)
+		{
+			graph.aStar(graph.nodeArray()[0], graph.nodeArray()[5], visit, path);
+			graph.test();
+		}
+		else if (check._Myfirst._Val == 2)
+		{
+		}
 		window.display();
 	}
 }

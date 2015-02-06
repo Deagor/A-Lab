@@ -26,10 +26,10 @@ template<class NodeType,class ArcType>
 class NodeFComparer
 {
 public:
-	bool operator()(GraphNode<NodeType, ArcType> n1, GraphNode<NodeType, ArcType> n2) const
+	bool operator()(GraphNode<NodeType, ArcType> *n1, GraphNode<NodeType, ArcType> *n2) const
 	{
-		float p1 = n1.getHValue() + n1.getGValue();
-		float p2 = n1.getHValue() + n2.getGValue();
+		float p1 = n1->getHValue() + n1->getGValue();
+		float p2 = n2->getHValue() + n2->getGValue();
 		return p2 < p1;
 	}
 };
@@ -502,6 +502,8 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 					if ((*iter).node()->marked() == false)
 					{
 						pq.push((*iter).node());
+						//make_heap(pq.top(), pq.top() + pq.size(),NodeFComparer)
+						//make_heap(const_cast<Node**>(&pq.top()), const_cast<Node**>(&pq.top()) + pq.size(), NodeFComparer<NodeType, ArcType>());
 						(*iter).node()->setMarked(true);
 					}
 				}
@@ -509,16 +511,18 @@ void Graph<NodeType, ArcType>::aStar(Node* pStart, Node* pDest, void(*pProcess)(
 		}	
 	}
 	//found target. put path into path vector(traverse the previous nodes)
-	/*Node* target = pDest;
+	Node* target = pDest;
 	while (target->getPrevNode() != NULL)
 	{
 		path.push_back(target);
+		target->setInPath(true);
 		target = target->getPrevNode();
 	}
 	if (target->getPrevNode() == NULL)
 	{
 		path.push_back(target);
-	}*/
+		target->setInPath(true);
+	}
 }
 
 template<class NodeType,class ArcType>
